@@ -138,9 +138,27 @@
         "description": "Epic-level work item"
     },
     {
+        "name": "orchestration",
+        "color": "5319e7",
+        "default": false,
+        "description": "Orchestration and coordination tasks"
+    },
+    {
+        "name": "project-setup",
+        "color": "0e8a16",
+        "default": false,
+        "description": "Project initialization and setup"
+    },
+    {
         "name": "story",
         "color": "5319e7",
         "default": false,
         "description": "User story"
+    },
+    {
+        "name": "workflow-tracking",
+        "color": "1d76db",
+        "default": false,
+        "description": "Tracks workflow execution and progress"
     }
 ]

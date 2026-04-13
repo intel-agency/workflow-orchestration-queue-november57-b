@@ -5,6 +5,137 @@ scope: repository
 ---
 
 <instructions>
+  <!-- ============================================================ -->
+  <!-- PYTHON APPLICATION SECTION                                   -->
+  <!-- ============================================================ -->
+
+  <python_application>
+    <name>Workflow Orchestration Queue (OS-APOW)</name>
+    <type>Python FastAPI Application</type>
+    <purpose>Distributed task queue using GitHub Issues as backing store with two services: Notifier (webhook receiver) and Sentinel (background processor)</purpose>
+
+    <technology_stack>
+      <item>Python 3.12+ with UV package manager</item>
+      <item>FastAPI for REST endpoints and webhook handling</item>
+      <item>httpx for async HTTP client operations</item>
+      <item>Pydantic for data validation and settings</item>
+      <item>pytest + pytest-asyncio for testing</item>
+      <item>ruff for linting and formatting</item>
+      <item>mypy for type checking</item>
+    </technology_stack>
+
+    <setup_commands>
+      <command name="Install dependencies">`uv sync`</command>
+      <command name="Build">N/A (Python is interpreted)</command>
+      <command name="Run tests">`uv run pytest`</command>
+      <command name="Run specific test">`uv run pytest tests/test_sentinel.py`</command>
+      <command name="Test with coverage">`uv run pytest --cov=src`</command>
+      <command name="Lint">`uv run ruff check src/`</command>
+      <command name="Format">`uv run ruff format src/`</command>
+      <command name="Type check">`uv run mypy src/`</command>
+      <command name="Run notifier">`uv run uvicorn src.notifier_service:app --reload`</command>
+      <command name="Run sentinel">`uv run python -m src.orchestrator_sentinel`</command>
+    </setup_commands>
+
+    <project_structure>
+      ```
+      src/
+      ├── orchestrator_sentinel.py    # Sentinel background service
+      ├── notifier_service.py         # FastAPI webhook receiver
+      ├── github_client/              # GitHub Issues API wrapper (was queue/)
+      │   ├── __init__.py
+      │   └── github_queue.py
+      └── models/
+          ├── __init__.py
+          └── work_item.py            # Pydantic models
+
+      tests/
+      ├── __init__.py
+      ├── test_sentinel.py
+      ├── test_notifier.py
+      └── test_github_queue.py
+      ```
+    </project_structure>
+
+    <key_components>
+      <component name="Notifier Service" path="src/notifier_service.py">
+        FastAPI application that receives GitHub webhooks at `/webhook/github`,
+        creates work items in GitHub Issues, and provides health check at `/health`.
+      </component>
+      <component name="Sentinel Service" path="src/orchestrator_sentinel.py">
+        Background daemon that polls GitHub Issues for queued items,
+        processes tasks with concurrency limits, and updates issue labels on completion.
+      </component>
+      <component name="GitHub Client" path="src/github_client/github_queue.py">
+        GitHub Issues API wrapper with async operations using httpx,
+        providing CRUD operations for issues and label management.
+      </component>
+      <component name="Models" path="src/models/work_item.py">
+        Pydantic models including `WorkItem` (main task model), `TaskType` enum,
+        `WorkItemStatus` enum, and DTOs (`WorkItemCreate`, `WorkItemUpdate`).
+      </component>
+    </key_components>
+
+    <environment_variables>
+      <required_for_both>
+        <var>`*_GITHUB_TOKEN` — GitHub PAT with repo permissions</var>
+        <var>`*_GITHUB_ORG` — Organization/user name</var>
+        <var>`*_GITHUB_REPO` — Repository name</var>
+      </required_for_both>
+      <sentinel_specific>
+        <var>`SENTINEL_POLL_INTERVAL_SECONDS` — Polling interval (default: 60)</var>
+        <var>`SENTINEL_MAX_CONCURRENT_TASKS` — Concurrency limit (default: 5)</var>
+      </sentinel_specific>
+    </environment_variables>
+
+    <code_style>
+      <rule>Python 3.12+ features allowed and encouraged</rule>
+      <rule>Type hints required on all functions (mypy strict mode)</rule>
+      <rule>Docstrings for all public APIs</rule>
+      <rule>Pydantic models for all data validation</rule>
+      <rule>Async/await for all I/O operations</rule>
+      <rule>ruff for linting and formatting (line-length: 100)</rule>
+      <rule>Use absolute imports from `src/` directory</rule>
+    </code_style>
+
+    <testing_strategy>
+      <guidance>Unit tests for all modules using pytest with pytest-asyncio for async tests. Mock external API calls. Test models and validation thoroughly.</guidance>
+      <commands>
+        <cmd>All tests: `uv run pytest`</cmd>
+        <cmd>Specific test: `uv run pytest tests/test_sentinel.py -v`</cmd>
+        <cmd>With coverage: `uv run pytest --cov=src --cov-report=term-missing`</cmd>
+      </commands>
+    </testing_strategy>
+
+    <common_pitfalls>
+      <pitfall name="Directory rename">
+        The `queue/` directory was renamed to `github_client/` to avoid conflict with Python's stdlib `queue` module.
+        All imports should use `github_client` not `queue`.
+      </pitfall>
+      <pitfall name="Import paths">
+        Use absolute imports from `src/` (e.g., `from github_client.github_queue import GitHubQueue`).
+        The pytest config sets `pythonpath = ["src"]`.
+      </pitfall>
+      <pitfall name="Environment variables">
+        Both services require GitHub credentials. The variable names have prefixes (e.g., `NOTIFIER_GITHUB_TOKEN`).
+      </pitfall>
+      <pitfall name="Scaffolding project">
+        This is a scaffolding project - implementations are basic but functional. Tests may be minimal initially.
+      </pitfall>
+    </common_pitfalls>
+
+    <related_documentation>
+      <doc path=".ai-repository-summary.md">Quick reference for AI agents</doc>
+      <doc path="pyproject.toml">Project configuration, dependencies, and tool settings</doc>
+      <doc path="docs/">Additional documentation (if present)</doc>
+      <doc path="plan_docs/">Planning documents (external-generated, do not modify)</doc>
+    </related_documentation>
+  </python_application>
+
+  <!-- ============================================================ -->
+  <!-- ORCHESTRATION/TEMPLATE SECTION (PRESERVED)                   -->
+  <!-- ============================================================ -->
+
   <purpose>
     <summary>
       GitHub Actions-based AI orchestration system. On GitHub events (issues, PR comments, reviews),

@@ -1,0 +1,59 @@
+# Docker Compose for local development
+# OS-APOW Workflow Orchestration Queue
+
+services:
+  notifier:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: workflow-notifier
+    ports:
+      - "8000:8000"
+    environment:
+      - NOTIFIER_GITHUB_TOKEN=${GITHUB_TOKEN}
+      - NOTIFIER_GITHUB_ORG=${GITHUB_ORG:-intel-agency}
+      - NOTIFIER_GITHUB_REPO=${GITHUB_REPO:-workflow-orchestration-queue-november57-b}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - workflow-network
+
+  sentinel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: workflow-sentinel
+    ports:
+      - "8080:8080"
+    environment:
+      - SENTINEL_GITHUB_TOKEN=${GITHUB_TOKEN}
+      - SENTINEL_GITHUB_ORG=${GITHUB_ORG:-intel-agency}
+      - SENTINEL_GITHUB_REPO=${GITHUB_REPO:-workflow-orchestration-queue-november57-b}
+      - SENTINEL_POLL_INTERVAL_SECONDS=${POLL_INTERVAL:-60}
+      - SENTINEL_MAX_CONCURRENT_TASKS=${MAX_TASKS:-5}
+    command: ["uv", "run", "python", "-m", "orchestrator_sentinel"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - workflow-network
+    depends_on:
+      notifier:
+        condition: service_healthy
+
+networks:
+  workflow-network:
+    driver: bridge
+
+# Optional: Volume for persistent data
+volumes:
+  workflow-data:
