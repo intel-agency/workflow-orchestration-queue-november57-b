@@ -4,13 +4,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-# Mark all tests in this module as async
-pytestmark = pytest.mark.asyncio
-
 
 class TestGitHubQueue:
     """Tests for GitHubQueue class."""
 
+    @pytest.mark.asyncio
     async def test_queue_initialization(self) -> None:
         """Test GitHubQueue can be initialized."""
         from github_client.github_queue import GitHubQueue
@@ -26,6 +24,7 @@ class TestGitHubQueue:
         assert queue.repo == "test-repo"
         assert queue.repo_path == "test-org/test-repo"
 
+    @pytest.mark.asyncio
     async def test_queue_with_custom_base_url(self) -> None:
         """Test GitHubQueue with custom base URL for GitHub Enterprise."""
         from github_client.github_queue import GitHubQueue
@@ -39,6 +38,7 @@ class TestGitHubQueue:
 
         assert queue.base_url == "https://github.example.com/api/v3"
 
+    @pytest.mark.asyncio
     async def test_get_headers(self) -> None:
         """Test HTTP headers are correctly set."""
         from github_client.github_queue import GitHubQueue
@@ -55,6 +55,7 @@ class TestGitHubQueue:
         assert headers["Accept"] == "application/vnd.github+json"
         assert "X-GitHub-Api-Version" in headers
 
+    @pytest.mark.asyncio
     async def test_close_client(self) -> None:
         """Test closing the HTTP client."""
         from github_client.github_queue import GitHubQueue
@@ -73,6 +74,7 @@ class TestGitHubQueue:
 class TestGitHubQueueErrors:
     """Tests for GitHubQueue error handling."""
 
+    @pytest.mark.asyncio
     async def test_auth_error(self) -> None:
         """Test GitHubAuthError is raised on 401."""
         from github_client.github_queue import GitHubAuthError, GitHubQueue
@@ -85,8 +87,6 @@ class TestGitHubQueueErrors:
 
         # Test that _request raises GitHubAuthError on 401
         with patch("github_client.github_queue.httpx.AsyncClient.request") as mock_request:
-            import httpx
-
             mock_response = MagicMock()
             mock_response.status_code = 401
             mock_response.text = "Unauthorized"
@@ -95,6 +95,7 @@ class TestGitHubQueueErrors:
             with pytest.raises(GitHubAuthError):
                 await queue._request("GET", "/test")
 
+    @pytest.mark.asyncio
     async def test_rate_limit_error(self) -> None:
         """Test GitHubRateLimitError is raised on rate limit."""
         from github_client.github_queue import GitHubQueue, GitHubRateLimitError
@@ -106,8 +107,6 @@ class TestGitHubQueueErrors:
         )
 
         with patch("github_client.github_queue.httpx.AsyncClient.request") as mock_request:
-            import httpx
-
             mock_response = MagicMock()
             mock_response.status_code = 403
             mock_response.text = "rate limit exceeded"
@@ -120,6 +119,7 @@ class TestGitHubQueueErrors:
 class TestWorkItemModels:
     """Tests for WorkItem model usage with queue."""
 
+    @pytest.mark.asyncio
     async def test_create_work_item(self) -> None:
         """Test creating a WorkItem from model."""
         from models.work_item import TaskType, WorkItem, WorkItemStatus
@@ -138,6 +138,7 @@ class TestWorkItemModels:
         assert item.task_type == TaskType.ISSUE
         assert item.status == WorkItemStatus.PENDING
 
+    @pytest.mark.asyncio
     async def test_work_item_create_model(self) -> None:
         """Test WorkItemCreate model."""
         from models.work_item import TaskType, WorkItemCreate
@@ -152,6 +153,7 @@ class TestWorkItemModels:
         assert create.title == "New Task"
         assert create.task_type == TaskType.PR_REVIEW
 
+    @pytest.mark.asyncio
     async def test_work_item_update_model(self) -> None:
         """Test WorkItemUpdate model."""
         from models.work_item import WorkItemStatus, WorkItemUpdate

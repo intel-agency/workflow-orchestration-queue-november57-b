@@ -99,7 +99,7 @@ docker-compose down
 ├── src/
 │   ├── orchestrator_sentinel.py    # Main Sentinel background service
 │   ├── notifier_service.py         # FastAPI webhook receiver
-│   ├── queue/
+│   ├── github_client/              # Was queue/ - renamed per S-6
 │   │   ├── __init__.py
 │   │   └── github_queue.py         # GitHub Issues API wrapper
 │   └── models/

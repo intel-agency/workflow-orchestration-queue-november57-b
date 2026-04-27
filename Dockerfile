@@ -1,5 +1,5 @@
 # Python 3.12+ base image
-FROM python:3.12-slim@sha256:3e3d6b8e9c57e1c5f7731e2c7d9d7e3e3c3e3e3e3e3e3e3e3e3e3e3e3e3e3e3
+FROM python:3.12-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -14,21 +14,15 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
 # Copy project files
 COPY pyproject.toml ./
 COPY .python-version* ./
 
+# Copy source code BEFORE install (editable install needs source tree)
+COPY src/ ./src/
+
 # Install Python dependencies
 RUN uv sync --no-dev --no-install-project
-
-# Copy source code
-COPY src/ ./src/
-COPY tests/ ./tests/
 
 # Expose ports
 # 8000: Notifier service (FastAPI)

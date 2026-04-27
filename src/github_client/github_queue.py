@@ -94,7 +94,7 @@ class GitHubQueue:
         method: str,
         endpoint: str,
         **kwargs: Any,
-    ) -> dict[str, Any]:
+    ) -> Any:
         """Make an authenticated request to GitHub API.
 
         Args:
@@ -103,7 +103,7 @@ class GitHubQueue:
             **kwargs: Additional arguments for httpx.
 
         Returns:
-            Parsed JSON response.
+            Parsed JSON response (dict or list depending on endpoint).
 
         Raises:
             GitHubAuthError: If authentication fails.
@@ -367,7 +367,7 @@ class GitHubQueue:
         )
         return [label["name"] for label in data]
 
-    async def add_comment(self, issue_number: int, body: str) -> dict[str, Any]:
+    async def add_comment(self, issue_number: int, body: str) -> Any:
         """Add a comment to an issue.
 
         Args:

@@ -7,6 +7,7 @@ that need to be processed by the Sentinel.
 
 import logging
 import sys
+from collections.abc import AsyncIterator, Callable, Coroutine
 from contextlib import asynccontextmanager
 from typing import Any
 
@@ -57,7 +58,7 @@ class QueueStatusResponse(BaseModel):
 
 
 @asynccontextmanager
-async def lifespan(_app: FastAPI):
+async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     """Manage application lifecycle."""
     global _queue
 
@@ -179,7 +180,9 @@ async def process_webhook_event(event_type: str, payload: WebhookPayload) -> Non
         logger.exception(f"Unexpected error processing {event_type} event: {e}")
 
 
-def get_event_handler(event_type: str):
+def get_event_handler(
+    event_type: str,
+) -> Callable[[WebhookPayload], Coroutine[Any, Any, WorkItemCreate | None]] | None:
     """Get the appropriate handler for an event type.
 
     Args:
