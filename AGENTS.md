@@ -18,7 +18,8 @@ scope: repository
       <item>Python 3.12+ with UV package manager</item>
       <item>FastAPI for REST endpoints and webhook handling</item>
       <item>httpx for async HTTP client operations</item>
-      <item>Pydantic for data validation and settings</item>
+      <item>Pydantic for data validation</item>
+      <item>pydantic-settings for service configuration (env var loading)</item>
       <item>pytest + pytest-asyncio for testing</item>
       <item>ruff for linting and formatting</item>
       <item>mypy for type checking</item>
@@ -60,7 +61,8 @@ scope: repository
     <key_components>
       <component name="Notifier Service" path="src/notifier_service.py">
         FastAPI application that receives GitHub webhooks at `/webhook/github`,
-        creates work items in GitHub Issues, and provides health check at `/health`.
+        creates work items in GitHub Issues, provides health check at `/health`,
+        and queue status at `/queue/status`.
       </component>
       <component name="Sentinel Service" path="src/orchestrator_sentinel.py">
         Background daemon that polls GitHub Issues for queued items,
@@ -85,6 +87,7 @@ scope: repository
       <sentinel_specific>
         <var>`SENTINEL_POLL_INTERVAL_SECONDS` — Polling interval (default: 60)</var>
         <var>`SENTINEL_MAX_CONCURRENT_TASKS` — Concurrency limit (default: 5)</var>
+        <var>`SENTINEL_QUEUE_LABELS` — Labels identifying queued items (default: ["queued"])</var>
       </sentinel_specific>
     </environment_variables>
 
